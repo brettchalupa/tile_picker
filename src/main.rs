@@ -1,11 +1,6 @@
 /*
- * Dev tool for viewing a tilesheet and easily getting tile indexes
- *
- * Run with:
- *
- * ```
- * cargo run --bin tile_picker
- * ````
+ * Game dev tool for viewing a tilesheet and easily getting tile indexes. Made
+ * by Brett Chalupa. Released into the public domain.
  */
 
 use raylib::prelude::*;
