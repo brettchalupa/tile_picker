@@ -1,0 +1,9 @@
+[
+  { "label": "just fmt", "command": "just", "args": ["fmt"] },
+  { "label": "just test", "command": "just", "args": ["test"] },
+  { "label": "just ok", "command": "just", "args": ["ok"] },
+  { "label": "just build", "command": "just", "args": ["build"] },
+  { "label": "just check", "command": "just", "args": ["check"] },
+  { "label": "just run", "command": "just", "args": ["run"] },
+  { "label": "just install", "command": "just", "args": ["install"] },
+]
