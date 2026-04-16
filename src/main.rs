@@ -110,6 +110,7 @@ fn main() {
         .title("tile_picker")
         .build();
 
+    rl.set_exit_key(None);
     rl.set_target_fps(60);
 
     let config = load_config();
@@ -179,6 +180,11 @@ fn update_view_image(rl: &mut RaylibHandle, thread: &RaylibThread, state: &mut S
     let tiles_count = tiles_wide * tiles_high;
     let screen_width = rl.get_screen_width() as f32;
     let screen_height = rl.get_screen_height() as f32;
+
+    if rl.is_key_down(KeyboardKey::KEY_ESCAPE) {
+        state.scene = Scene::PickFile;
+        return;
+    }
 
     if rl.is_key_down(KeyboardKey::KEY_D) {
         view_state.pos.x -= PAN_SPEED;
