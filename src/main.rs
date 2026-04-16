@@ -4,8 +4,10 @@
  */
 
 use raylib::prelude::*;
+use serde::Deserialize;
 
 const MARGIN: f32 = 20.;
+const CONFIG_FILE: &str = "tp.toml";
 
 enum Scene {
     PickFile,
@@ -23,8 +25,8 @@ struct ViewImageState {
     /// Whether or not to show the grid and index on top of the tilesheet
     show_overlay: bool,
     background_color_idx: usize,
-    /// When true, displayed and copied indexes are 1-based (for Lua)
-    lua_index: bool,
+    /// When true, displayed and copied indexes are 1-based
+    one_based_index: bool,
 }
 
 /// Temporarily displayed pop-up message to give feedback to the user after an
@@ -47,6 +49,40 @@ impl Toast {
     }
 }
 
+#[derive(Deserialize)]
+struct Config {
+    #[serde(default = "default_dir")]
+    dir: String,
+    #[serde(default)]
+    one_based_index: bool,
+}
+
+fn default_dir() -> String {
+    "assets".to_string()
+}
+
+impl Default for Config {
+    fn default() -> Self {
+        Self {
+            dir: default_dir(),
+            one_based_index: false,
+        }
+    }
+}
+
+fn load_config() -> Config {
+    match std::fs::read_to_string(CONFIG_FILE) {
+        Ok(contents) => match toml::from_str(&contents) {
+            Ok(config) => config,
+            Err(e) => {
+                eprintln!("Warning: failed to parse {}: {}", CONFIG_FILE, e);
+                Config::default()
+            }
+        },
+        Err(_) => Config::default(),
+    }
+}
+
 struct State {
     scene: Scene,
     active_texture: Option<Texture2D>,
@@ -61,6 +97,7 @@ struct State {
     list_active_last: i32,
     view_state: Option<ViewImageState>,
     toast: Option<Toast>,
+    one_based_index: bool,
 }
 
 fn main() {
@@ -75,9 +112,8 @@ fn main() {
 
     rl.set_target_fps(60);
 
-    let dir = std::env::args()
-        .nth(1)
-        .unwrap_or_else(|| "assets".to_string());
+    let config = load_config();
+    let dir = std::env::args().nth(1).unwrap_or(config.dir);
     let image_paths = rl
         .load_directory_files_ex(&dir, ".png".to_string(), false)
         .paths()
@@ -95,6 +131,7 @@ fn main() {
         list_active_last: 0,
         view_state: None,
         toast: None,
+        one_based_index: config.one_based_index,
     };
 
     load_active_into_texture(
@@ -171,8 +208,8 @@ fn update_view_image(rl: &mut RaylibHandle, thread: &RaylibThread, state: &mut S
         }
     }
     if rl.is_key_pressed(KeyboardKey::KEY_ONE) {
-        view_state.lua_index = !view_state.lua_index;
-        let mode = if view_state.lua_index {
+        view_state.one_based_index = !view_state.one_based_index;
+        let mode = if view_state.one_based_index {
             "1-indexed (Lua)"
         } else {
             "0-indexed"
@@ -193,7 +230,7 @@ fn update_view_image(rl: &mut RaylibHandle, thread: &RaylibThread, state: &mut S
         let tile_y = ((mouse_pos.y - view_state.pos.y)
             / (view_state.tile_size as f32 * view_state.zoom))
             .floor() as i32;
-        let idx = tiles_wide * tile_y + tile_x + if view_state.lua_index { 1 } else { 0 };
+        let idx = tiles_wide * tile_y + tile_x + if view_state.one_based_index { 1 } else { 0 };
         rl.set_clipboard_text(&idx.to_string())
             .expect("Writing to clipboard failed");
         let msg = format!("Copied to clipboard: {}", idx);
@@ -209,7 +246,7 @@ fn update_view_image(rl: &mut RaylibHandle, thread: &RaylibThread, state: &mut S
     if view_state.show_overlay {
         let overlay_color = Color::alpha(&Color::DARKCYAN, 0.8);
 
-        let index_offset = if view_state.lua_index { 1 } else { 0 };
+        let index_offset = if view_state.one_based_index { 1 } else { 0 };
         // draw indexes
         for idx in 0..tiles_count {
             let padding = 4.;
@@ -393,7 +430,7 @@ fn switch_scene(state: &mut State, next_scene: Scene) {
                     state.image_paths.get(state.list_active as usize).unwrap(),
                 ),
                 background_color_idx: 0,
-                lua_index: false,
+                one_based_index: state.one_based_index,
             });
         }
     }
@@ -442,6 +479,52 @@ fn load_active_into_texture(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    fn parse_config(input: &str) -> Config {
+        toml::from_str(input).unwrap()
+    }
+
+    #[test]
+    fn test_config_defaults() {
+        let config: Config = toml::from_str("").unwrap();
+        assert_eq!(config.dir, "assets");
+        assert!(!config.one_based_index);
+    }
+
+    #[test]
+    fn test_config_full() {
+        let config = parse_config(
+            r#"
+            dir = "sprites"
+            one_based_index = true
+            "#,
+        );
+        assert_eq!(config.dir, "sprites");
+        assert!(config.one_based_index);
+    }
+
+    #[test]
+    fn test_config_partial_dir_only() {
+        let config = parse_config(r#"dir = "gfx""#);
+        assert_eq!(config.dir, "gfx");
+        assert!(!config.one_based_index);
+    }
+
+    #[test]
+    fn test_config_partial_index_only() {
+        let config = parse_config("one_based_index = true");
+        assert_eq!(config.dir, "assets");
+        assert!(config.one_based_index);
+    }
+
+    #[test]
+    fn test_config_invalid_toml_falls_back_to_default() {
+        let config: Result<Config, _> = toml::from_str("not valid toml {{{}}}");
+        assert!(config.is_err());
+        let fallback = Config::default();
+        assert_eq!(fallback.dir, "assets");
+        assert!(!fallback.one_based_index);
+    }
 
     #[test]
     fn test_determine_tile_size() {
