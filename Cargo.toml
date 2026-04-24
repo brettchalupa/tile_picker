@@ -4,6 +4,6 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-sola-raylib = { version = "5.5", features = [] }
+sola-raylib = { git="https://github.com/brettchalupa/sola-raylib.git" }
 serde = { version = "1.0.228", features = ["derive"] }
 toml = "1.1.2"
