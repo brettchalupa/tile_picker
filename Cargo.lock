@@ -210,30 +210,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "raylib"
-version = "5.5.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e5c54335590d1b6e6fbdbccee09dafdfd76a1111fc3c709eca949e71e81f7a8a"
-dependencies = [
- "cfg-if",
- "paste",
- "raylib-sys",
- "seq-macro",
- "thiserror",
-]
-
-[[package]]
-name = "raylib-sys"
-version = "5.5.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3ce5adc950b042db67f1f78f24f7e76563652ce24db032afe9ca9e534d8b7a13"
-dependencies = [
- "bindgen",
- "cc",
- "cmake",
-]
-
-[[package]]
 name = "regex"
 version = "1.12.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -320,6 +296,30 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0fda2ff0d084019ba4d7c6f371c95d8fd75ce3524c3cb8fb653a3023f6323e64"
 
 [[package]]
+name = "sola-raylib"
+version = "5.5.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1657747761feb5edd4a047c4fd3d900bceaedfa446a066388bcfdac43d5edf39"
+dependencies = [
+ "cfg-if",
+ "paste",
+ "seq-macro",
+ "sola-raylib-sys",
+ "thiserror",
+]
+
+[[package]]
+name = "sola-raylib-sys"
+version = "5.5.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bdc246e66e0909eaa10de64d02d217cdcb6a33fc002c1b4064344ae264c1b0d1"
+dependencies = [
+ "bindgen",
+ "cc",
+ "cmake",
+]
+
+[[package]]
 name = "syn"
 version = "2.0.117"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -354,8 +354,8 @@ dependencies = [
 name = "tile_picker"
 version = "0.1.0"
 dependencies = [
- "raylib",
  "serde",
+ "sola-raylib",
  "toml",
 ]
 

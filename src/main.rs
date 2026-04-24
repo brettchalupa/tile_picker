@@ -3,8 +3,8 @@
  * by Brett Chalupa. Released into the public domain.
  */
 
-use raylib::prelude::*;
 use serde::Deserialize;
+use sola_raylib::prelude::*;
 
 const MARGIN: f32 = 20.;
 const CONFIG_FILE: &str = "tp.toml";
@@ -101,12 +101,10 @@ struct State {
 }
 
 fn main() {
-    unsafe {
-        raylib::ffi::SetConfigFlags(raylib::ffi::ConfigFlags::FLAG_WINDOW_HIGHDPI as u32);
-    }
-    let (mut rl, thread) = raylib::init()
+    let (mut rl, thread) = sola_raylib::init()
         .size(1280, 720)
         .resizable()
+        .highdpi()
         .title("tile_picker")
         .build();
 
